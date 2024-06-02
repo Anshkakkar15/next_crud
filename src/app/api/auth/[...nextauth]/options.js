@@ -7,13 +7,13 @@ export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
-      id: "Credentials",
+      id: "credentials",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        dbConnect();
+        await dbConnect();
         try {
           const user = await userModel.findOne({
             $or: [
@@ -21,6 +21,8 @@ export const authOptions = {
               { password: credentials.identifier },
             ],
           });
+
+          console.log(user);
 
           if (!user) {
             throw new Error("No User found with this email and username");
@@ -48,11 +50,23 @@ export const authOptions = {
   ],
   callbacks: {
     async session({ session, token }) {
+      if (token) {
+        session.user._id = token._id;
+        session.user.isVerified = token.isVerified;
+        session.user.username = token.username;
+        session.user.email = token.email;
+      }
       return session;
     },
 
     async jwt({ token, user }) {
-      return user;
+      if (user) {
+        token._id = user._id?.toString();
+        token.isVerified = user.isVerified;
+        token.username = user.username;
+        token.email = token.email;
+      }
+      return token;
     },
   },
 

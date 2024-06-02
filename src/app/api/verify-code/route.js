@@ -2,7 +2,7 @@ import dbConnect from "@/lib/db";
 import userModel from "@/model/User";
 
 export async function POST(request) {
-  dbConnect();
+  await dbConnect();
   try {
     const { username, code } = await request.json();
     const decodedUsername = decodeURIComponent(username);
